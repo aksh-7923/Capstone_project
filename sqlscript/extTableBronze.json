@@ -1,0 +1,17 @@
+{
+	"name": "extTableBronze",
+	"properties": {
+		"content": {
+			"query": "use globalmart_db\nGO\n\nCREATE EXTERNAL TABLE bronze.customers\n(\n    customer_id VARCHAR(100),\n    customer_email VARCHAR(255),\n    customer_name VARCHAR(100),\n    segment VARCHAR(100),\n    country VARCHAR(100),\n    city VARCHAR(100),\n    state VARCHAR(100),\n    postal_code INT,\n    region VARCHAR(100) )\nwith(\n    LOCATION='customers.csv',\n    data_source=ADLSDataSource,\n    FILE_FORMAT=csv_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/customers'\n);\n\nselect top 10* from bronze.customers\n\nuse globalmart_db\nGO\n\nCREATE EXTERNAL TABLE bronze.orders\n(\n    order_id varchar(100),\n    customer_id varchar(100),\n    vendor_id varchar(100),\n    ship_mode varchar(100),\n    order_status varchar(100),\n    order_purchase_date VARCHAR(50),\n    order_approved_at VARCHAR(50),\n    order_delivered_carrier_date VARCHAR(50),\n    order_delivered_customer_date VARCHAR(50),\n    order_estimated_delivery_date VARCHAR(50) )\nwith(\n    LOCATION='orders.csv',\n    data_source=ADLSDataSource,\n    FILE_FORMAT=csv_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/orders'\n);\n\nselect * from bronze.orders\n\nuse globalmart_db\nGO\n\nCREATE EXTERNAL TABLE bronze.vendors\n(\n    vendor_id varchar(100) ,\n    vendor_name varchar(100) )\nwith(\n    LOCATION='vendors.csv',\n    data_source=ADLSDataSource,\n    FILE_FORMAT=csv_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/vendors'\n);\n\nselect top 10* from bronze.vendors",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "globalmart_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

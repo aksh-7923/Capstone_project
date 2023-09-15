@@ -1,0 +1,17 @@
+{
+	"name": "SQL_ext_datasource",
+	"properties": {
+		"content": {
+			"query": "USE globalmart_db\n\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Globalmart@123'\n\nCREATE DATABASE SCOPED CREDENTIAL ADLS_cred_sas\nWITH IDENTITY='SHARED ACCESS SIGNATURE',  \nSECRET = '?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupyx&se=2023-09-06T16:01:23Z&st=2023-09-06T08:01:23Z&spr=https&sig=P0VbA%2BlM4i7XcH0PqVExgZPYftU%2F35U%2BWpPXT%2BMN0wU%3D'\nGO\n\nCREATE EXTERNAL DATA SOURCE ADLSDataSource WITH (\n    LOCATION = 'https://synapsestore01.dfs.core.windows.net/synfiles01/syn_mod_1/' ,\n    CREDENTIAL = ADLS_cred_sas\n   ) ;\n\n   ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "globalmart_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

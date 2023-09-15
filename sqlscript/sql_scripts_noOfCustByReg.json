@@ -1,0 +1,17 @@
+{
+	"name": "sql_scripts_noOfCustByReg",
+	"properties": {
+		"content": {
+			"query": "SELECT\n    Region,\n    count(*) as no_of_customers\nFROM\n    OPENROWSET(\n        BULK 'https://synapsestore01.dfs.core.windows.net/synfiles01/syn_mod_1/customers.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n\ngroup by region\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

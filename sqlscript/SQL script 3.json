@@ -2,12 +2,12 @@
 	"name": "SQL script 3",
 	"properties": {
 		"content": {
-			"query": "USE globalmart_db\n\n-- CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Globalmart@123'\n\nCREATE DATABASE SCOPED CREDENTIAL storage_credentials02\nWITH IDENTITY='SHARED ACCESS SIGNATURE',  \nSECRET = 'sp=racwdlmeop&st=2023-09-06T11:23:09Z&se=2023-09-07T19:23:09Z&spr=https&sv=2022-11-02&sr=c&sig=VY7BMidkauvEmHyJ8MhHIc%2B1g1TYmPWn3DYEEA3Rdso%3D'\nGO\n\nCREATE EXTERNAL DATA SOURCE externalDataSource01 WITH (\n    LOCATION = 'https://synapsestore01.dfs.core.windows.net/synfiles01/syn_mod_1/' ,\n    CREDENTIAL = storage_credentials02\n   ) ;\n\n   ",
+			"query": "-- This is auto-generated code\nSELECT\n     MONTH(order_purchase_date) as month, YEAR(order_purchase_date) as year ,count(order_id) as no_of_orders\nFROM\n    OPENROWSET(\n        BULK 'https://adlsglobalaayush.dfs.core.windows.net/synapsecontainer/orders (2).csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n    GROUP BY YEAR(order_purchase_date),MONTH(order_purchase_date)\n",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "globalmart_db",
+				"databaseName": "master",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000

@@ -1,0 +1,15 @@
+{
+	"name": "AzureSqlDB_Dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_to_AzureSqlDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"table": "policy_silver"
+		}
+	}
+}

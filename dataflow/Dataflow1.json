@@ -31,7 +31,7 @@
 			"transformations": [],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as string,",
+				"          CustomerID as integer,",
 				"          Region as string,",
 				"          State as string,",
 				"          City as string,",

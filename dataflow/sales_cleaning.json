@@ -1,0 +1,78 @@
+{
+	"name": "sales_cleaning",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "sales",
+						"type": "DatasetReference"
+					},
+					"name": "sales"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "sales_silver",
+						"type": "DatasetReference"
+					},
+					"name": "adls"
+				},
+				{
+					"dataset": {
+						"referenceName": "sales_silver_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sqldb"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DatatypeCorrection"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sales_id as integer,",
+				"          ad_placed_on as string,",
+				"          sold_on as string,",
+				"          selling_price as integer,",
+				"          Region as string,",
+				"          State as string,",
+				"          City as string,",
+				"          seller_type as string,",
+				"          owner as string,",
+				"          sold as string,",
+				"          car_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sales",
+				"sales derive(ad_placed_on = toTimestamp(ad_placed_on, \"yyyy-MM-dd HH:mm\"),",
+				"          sold_on = toTimestamp(sold_on, \"yyyy-MM-dd HH:mm\")) ~> DatatypeCorrection",
+				"DatatypeCorrection sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> adls",
+				"DatatypeCorrection sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     partitionBy('hash', 1)) ~> sqldb"
+			]
+		}
+	}
+}

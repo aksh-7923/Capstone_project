@@ -1,0 +1,61 @@
+{
+	"name": "policy_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "policy.csv",
+				"folderPath": "bronze/policy",
+				"fileSystem": "capstone-filesystem"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "policy_number",
+				"type": "String"
+			},
+			{
+				"name": "policy_bind_date",
+				"type": "String"
+			},
+			{
+				"name": "policy_state",
+				"type": "String"
+			},
+			{
+				"name": "policy_csl",
+				"type": "String"
+			},
+			{
+				"name": "policy_deductable",
+				"type": "String"
+			},
+			{
+				"name": "policy_annual_premium",
+				"type": "String"
+			},
+			{
+				"name": "umbrella_limit",
+				"type": "String"
+			},
+			{
+				"name": "car_id",
+				"type": "String"
+			},
+			{
+				"name": "customer_id",
+				"type": "String"
+			}
+		]
+	}
+}

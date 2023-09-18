@@ -1,0 +1,20 @@
+{
+	"name": "sales_silver",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "silver/sales",
+				"fileSystem": "capstone-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

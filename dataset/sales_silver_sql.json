@@ -1,0 +1,16 @@
+{
+	"name": "sales_silver_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sales_silver_sql",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "",
+			"table": "sales_silver"
+		}
+	}
+}

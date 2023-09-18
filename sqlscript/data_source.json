@@ -2,12 +2,12 @@
 	"name": "data_source",
 	"properties": {
 		"content": {
-			"query": "",
+			"query": "use secondcars_silver;\nGO\ncreate master key ENCRYPTION by PASSWORD='Tredence@1';\n\ncreate database scoped CREDENTIAL secondcars_cred\nwith IDENTITY ='SHARED ACCESS SIGNATURE',\nSECRET= 'sp=r&st=2023-09-18T04:45:06Z&se=2023-09-28T12:45:06Z&spr=https&sv=2022-11-02&sr=c&sig=fRAPkhX9T4%2FvUY2VJzJSu6IsVQn3kW2sVJ%2B3Qj6JZ%2F4%3D'\nif not EXISTS (select * from sys.external_data_sources where name='secondcars_source')\n    CREATE EXTERNAL DATA SOURCE secondcars_source\n    WITH(\n        location='https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver',\n        CREDENTIAL = secondcars_cred\n    );",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "secondcars_silver",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000

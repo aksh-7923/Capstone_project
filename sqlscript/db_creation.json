@@ -2,12 +2,12 @@
 	"name": "db_creation",
 	"properties": {
 		"content": {
-			"query": "create DATABASE secondcars_silver;\nALTER DATABASE globalmart COLLATE Latin1_General_100_BIN2_UTF8\nGO\n\nUSE secondcars_silver\nGO\ncreate schema silver\nGO\n",
+			"query": "create DATABASE secondcars_silver;\nALTER DATABASE secondcars_silver COLLATE Latin1_General_100_BIN2_UTF8\nGO\n\nUSE secondcars_silver\nGO\ncreate schema silver\nGO\n",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "secondcars_silver",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000

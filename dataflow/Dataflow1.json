@@ -22,16 +22,16 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "customersqldb",
+						"referenceName": "customersLinked",
 						"type": "DatasetReference"
 					},
-					"name": "customersqldb"
+					"name": "customerdb"
 				}
 			],
 			"transformations": [],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as string,",
+				"          CustomerID as integer,",
 				"          Region as string,",
 				"          State as string,",
 				"          City as string,",
@@ -66,8 +66,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     partitionBy('hash', 1)) ~> customersqldb"
+				"     errorHandlingOption: 'stopOnFirstError') ~> customerdb"
 			]
 		}
 	}

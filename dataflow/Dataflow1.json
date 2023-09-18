@@ -22,10 +22,10 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "customersqldb",
+						"referenceName": "customersLinked",
 						"type": "DatasetReference"
 					},
-					"name": "customersqldb"
+					"name": "customerdb"
 				}
 			],
 			"transformations": [],
@@ -66,8 +66,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     partitionBy('hash', 1)) ~> customersqldb"
+				"     errorHandlingOption: 'stopOnFirstError') ~> customerdb"
 			]
 		}
 	}

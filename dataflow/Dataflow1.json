@@ -1,0 +1,74 @@
+{
+	"name": "Dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "customerdataset",
+						"type": "DatasetReference"
+					},
+					"name": "customers"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "customers_silver",
+						"type": "DatasetReference"
+					},
+					"name": "customersinkadls"
+				},
+				{
+					"dataset": {
+						"referenceName": "customersqldb",
+						"type": "DatasetReference"
+					},
+					"name": "customersqldb"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as string,",
+				"          Region as string,",
+				"          State as string,",
+				"          City as string,",
+				"          seller_type as string,",
+				"          owner as string,",
+				"          Job as string,",
+				"          Marital as string,",
+				"          Education as string,",
+				"          Default as integer,",
+				"          Balance as integer,",
+				"          HHInsurance as integer,",
+				"          CarLoan as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> customers",
+				"customers sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> customersinkadls",
+				"customers sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     partitionBy('hash', 1)) ~> customersqldb"
+			]
+		}
+	}
+}

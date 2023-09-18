@@ -1,0 +1,17 @@
+{
+	"name": "file_format",
+	"properties": {
+		"content": {
+			"query": "use secondcars_silver;\nGO\n\nCREATE EXTERNAL FILE FORMAT parquet_file_format \nWITH (\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n);\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "secondcars_silver",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

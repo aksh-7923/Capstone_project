@@ -1,0 +1,17 @@
+{
+	"name": "exploration_cars",
+	"properties": {
+		"content": {
+			"query": "-- This is auto-generated code\nSELECT\n    TOP 10*\nFROM\n    OPENROWSET(\n        BULK 'https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver/cars/part-00000-fdc5a7f7-1048-4a27-97ca-8039054bda1e-c000.snappy.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

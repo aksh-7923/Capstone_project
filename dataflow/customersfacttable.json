@@ -33,7 +33,15 @@
 					"name": "policysilverdata"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "customerfacts",
+						"type": "DatasetReference"
+					},
+					"name": "customerfacts"
+				}
+			],
 			"transformations": [
 				{
 					"name": "join1"
@@ -190,7 +198,16 @@
 				"          risk_category",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select3"
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> customerfacts"
 			]
 		}
 	}

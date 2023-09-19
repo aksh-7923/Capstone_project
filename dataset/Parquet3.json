@@ -1,0 +1,58 @@
+{
+	"name": "Parquet3",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-2bbc4a75-b093-4fcd-a18d-ea577a2bebac-c000.snappy.parquet",
+				"folderPath": "silver/policy",
+				"fileSystem": "capstone-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "policy_number",
+				"type": "INT32"
+			},
+			{
+				"name": "policy_bind_date",
+				"type": "DATE"
+			},
+			{
+				"name": "policy_state",
+				"type": "UTF8"
+			},
+			{
+				"name": "policy_csl",
+				"type": "UTF8"
+			},
+			{
+				"name": "policy_deductable",
+				"type": "INT32"
+			},
+			{
+				"name": "policy_annual_premium",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "umbrella_limit",
+				"type": "INT32"
+			},
+			{
+				"name": "car_id",
+				"type": "INT32"
+			},
+			{
+				"name": "customer_id",
+				"type": "INT32"
+			}
+		]
+	}
+}

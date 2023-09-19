@@ -1,0 +1,163 @@
+{
+	"name": "salesfacttable_dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "sales_silver_dataset",
+						"type": "DatasetReference"
+					},
+					"name": "salesData"
+				},
+				{
+					"dataset": {
+						"referenceName": "Parquet3",
+						"type": "DatasetReference"
+					},
+					"name": "policyData"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "SalesCount"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "AvgSellingPrice"
+				},
+				{
+					"name": "CarsSold"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "NoOfIndividualSales"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "NoOfDealerSales"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "filter4"
+				},
+				{
+					"name": "filter5"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "filter6"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "filter7"
+				},
+				{
+					"name": "aggregate2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sales_id as integer,",
+				"          ad_placed_on as timestamp,",
+				"          sold_on as timestamp,",
+				"          selling_price as integer,",
+				"          Region as string,",
+				"          State as string,",
+				"          City as string,",
+				"          seller_type as string,",
+				"          owner as string,",
+				"          sold as string,",
+				"          car_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> salesData",
+				"source(output(",
+				"          policy_number as integer,",
+				"          policy_bind_date as date,",
+				"          policy_state as string,",
+				"          policy_csl as string,",
+				"          policy_deductable as integer,",
+				"          policy_annual_premium as double,",
+				"          umbrella_limit as integer,",
+				"          car_id as integer,",
+				"          customer_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> policyData",
+				"filter5 aggregate(groupBy(year,",
+				"          month),",
+				"     Sales_Count = count(sold_on)) ~> SalesCount",
+				"salesData derive(month = month(sold_on),",
+				"          year = year(sold_on)) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          sales_id,",
+				"          ad_placed_on,",
+				"          sold_on,",
+				"          selling_price,",
+				"          seller_type,",
+				"          owner,",
+				"          sold,",
+				"          car_id,",
+				"          customer_id = sales_id,",
+				"          month,",
+				"          year",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"filter4 aggregate(groupBy(year,",
+				"          month),",
+				"     Avg_Selling_Price = avg(selling_price)) ~> AvgSellingPrice",
+				"filter3 aggregate(groupBy(year,",
+				"          month),",
+				"     No_Of_Cars_Sold = count(sold_on)) ~> CarsSold",
+				"select1 filter((seller_type == 'Individual') && (!isNull(sold_on))) ~> filter1",
+				"filter1 aggregate(groupBy(year,",
+				"          month),",
+				"     No_Of_Individual_Sales = count(sold_on)) ~> NoOfIndividualSales",
+				"select1 filter((seller_type == 'Dealer')  && (!isNull(sold_on))) ~> filter2",
+				"filter2 aggregate(groupBy(year,",
+				"          month),",
+				"     No_Of_Dealer_Sales = count(sold_on)) ~> NoOfDealerSales",
+				"select1 filter((!isNull(sold_on))) ~> filter3",
+				"select1 filter((!isNull(sold_on))) ~> filter4",
+				"select1 filter((!isNull(sold_on))) ~> filter5",
+				"filter6 aggregate(groupBy(year,",
+				"          month),",
+				"     inventory_count = count()) ~> aggregate1",
+				"select1 filter((isNull(sold_on)) && (toDate(ad_placed_on) <= addMonths(currentDate(), -1))\r",
+				") ~> filter6",
+				"select1, policyData join(select1@car_id == policyData@car_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 filter((isNull(policy_number))) ~> filter7",
+				"filter7 aggregate(groupBy(year,",
+				"          month),",
+				"     no_insurance_count = count(sales_id)) ~> aggregate2"
+			]
+		}
+	}
+}

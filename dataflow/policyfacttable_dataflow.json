@@ -1,0 +1,181 @@
+{
+	"name": "policyfacttable_dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "policysourceparquet",
+						"type": "DatasetReference"
+					},
+					"name": "policysource"
+				},
+				{
+					"dataset": {
+						"referenceName": "salessourceparquet",
+						"type": "DatasetReference"
+					},
+					"name": "salessource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1monthandyear"
+				},
+				{
+					"name": "numberofcustomers"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "soldcarpolicies"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "inventorycarpolicies"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "liablecarsaggregation"
+				},
+				{
+					"name": "join6"
+				},
+				{
+					"name": "join7"
+				},
+				{
+					"name": "join8"
+				},
+				{
+					"name": "select2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          policy_number as integer,",
+				"          policy_bind_date as date,",
+				"          policy_state as string,",
+				"          policy_csl as string,",
+				"          policy_deductable as integer,",
+				"          policy_annual_premium as double,",
+				"          umbrella_limit as integer,",
+				"          car_id as integer,",
+				"          customer_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> policysource",
+				"source(output(",
+				"          sales_id as integer,",
+				"          ad_placed_on as timestamp,",
+				"          sold_on as timestamp,",
+				"          selling_price as integer,",
+				"          Region as string,",
+				"          State as string,",
+				"          City as string,",
+				"          seller_type as string,",
+				"          owner as string,",
+				"          sold as string,",
+				"          car_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> salessource",
+				"select1 derive(year = year(policy_bind_date),",
+				"          month = month(policy_bind_date)) ~> derivedColumn1monthandyear",
+				"derivedColumn1monthandyear aggregate(groupBy(year,",
+				"          month),",
+				"     Number_of_customers = countDistinct(policy_number)) ~> numberofcustomers",
+				"policysource, salessource join(policysource@car_id == salessource@car_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 select(mapColumn(",
+				"          policy_number,",
+				"          policy_bind_date,",
+				"          umbrella_limit,",
+				"          car_id = policysource@car_id,",
+				"          customer_id,",
+				"          sales_id,",
+				"          selling_price,",
+				"          sold",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"derivedColumn1monthandyear filter(sold=='Y') ~> filter1",
+				"filter1 aggregate(groupBy(year,",
+				"          month),",
+				"     sold_car_policies = countDistinct(policy_number)) ~> soldcarpolicies",
+				"derivedColumn1monthandyear filter(sold=='N') ~> filter2",
+				"filter2 aggregate(groupBy(year,",
+				"          month),",
+				"     inventory_car_policies = countDistinct(policy_number)) ~> inventorycarpolicies",
+				"derivedColumn1monthandyear filter(selling_price>umbrella_limit) ~> filter3",
+				"filter3 aggregate(groupBy(year,",
+				"          month),",
+				"     liable_cars = countDistinct(policy_number)) ~> liablecarsaggregation",
+				"numberofcustomers, soldcarpolicies join(numberofcustomers@year == soldcarpolicies@year",
+				"     && numberofcustomers@month == soldcarpolicies@month,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join6",
+				"join6, inventorycarpolicies join(numberofcustomers@year == inventorycarpolicies@year",
+				"     && numberofcustomers@month == inventorycarpolicies@month,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join7",
+				"join7, liablecarsaggregation join(numberofcustomers@year == liablecarsaggregation@year",
+				"     && numberofcustomers@month == liablecarsaggregation@month,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join8",
+				"join8 select(mapColumn(",
+				"          year = numberofcustomers@year,",
+				"          month = numberofcustomers@month,",
+				"          Number_of_customers,",
+				"          sold_car_policies,",
+				"          inventory_car_policies,",
+				"          liable_cars",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

@@ -25,9 +25,6 @@
 					"name": "SalesCount"
 				},
 				{
-					"name": "derivedColumn1"
-				},
-				{
 					"name": "select1"
 				},
 				{
@@ -101,6 +98,21 @@
 				},
 				{
 					"name": "select5"
+				},
+				{
+					"name": "derivedColumn4"
+				},
+				{
+					"name": "monthyearderive"
+				},
+				{
+					"name": "filter8"
+				},
+				{
+					"name": "aggregate4"
+				},
+				{
+					"name": "derivedColumn5"
 				}
 			],
 			"scriptLines": [
@@ -139,9 +151,7 @@
 				"filter5 aggregate(groupBy(year,",
 				"          month),",
 				"     Sales_Count = count(sold_on)) ~> SalesCount",
-				"salesData derive(month = month(sold_on),",
-				"          year = year(sold_on)) ~> derivedColumn1",
-				"derivedColumn1 select(mapColumn(",
+				"monthyearderive select(mapColumn(",
 				"          sales_id,",
 				"          ad_placed_on,",
 				"          sold_on,",
@@ -178,15 +188,15 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> policysalesjoin",
-				"policysalesjoin filter((isNull(policy_number))) ~> filter7",
+				"policysalesjoin filter((isNull(policy_number)) &&(!isNull(sold_on))) ~> filter7",
 				"filter7 aggregate(groupBy(year,",
 				"          month),",
-				"     no_insurance_count = sum(sales_id)) ~> aggregate2",
-				"salesData derive(year = year(ad_placed_on),",
+				"     no_insurance_count = count(select1@car_id)) ~> aggregate2",
+				"derivedColumn4 derive(year = year(ad_placed_on),",
 				"          month = month(ad_placed_on)) ~> derivedColumn2",
 				"derivedColumn2 derive(not_sold = case(sold=='N',1,0)) ~> derivedColumn3",
 				"derivedColumn3 aggregate(groupBy(year,",
-				"          month),",
+				"          month = derivedColumn2@month),",
 				"     abcount = count(car_id)) ~> aggregate3",
 				"aggregate3 window(asc(year, true),",
 				"     asc(month, true),",
@@ -252,7 +262,16 @@
 				"          No_Of_Dealer_Sales",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select5"
+				"     skipDuplicateMapOutputs: true) ~> select5",
+				"salesData derive(year = case(isNull(sold_on),year(ad_placed_on),year(sold_on)),",
+				"          month = case(isNull(sold_on),month(ad_placed_on),month(sold_on))) ~> derivedColumn4",
+				"salesData derive(year = case(isNull(sold_on),year(ad_placed_on),year(sold_on)),",
+				"          month = case(isNull(sold_on),month(ad_placed_on),month(sold_on))) ~> monthyearderive",
+				"derivedColumn5 filter(isNull(sold_on)) ~> filter8",
+				"filter8 aggregate(groupBy(year,",
+				"          month),",
+				"     Not_sold_count = sum(Not_sold)) ~> aggregate4",
+				"select1 derive(Not_sold = case(sold=='N',1,0)) ~> derivedColumn5"
 			]
 		}
 	}

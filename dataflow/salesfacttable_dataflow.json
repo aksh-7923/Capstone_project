@@ -61,19 +61,7 @@
 					"name": "filter7"
 				},
 				{
-					"name": "aggregate2"
-				},
-				{
-					"name": "derivedColumn2"
-				},
-				{
-					"name": "derivedColumn3"
-				},
-				{
-					"name": "aggregate3"
-				},
-				{
-					"name": "window1"
+					"name": "carsoldwithoutinsurance"
 				},
 				{
 					"name": "join2"
@@ -100,19 +88,31 @@
 					"name": "select5"
 				},
 				{
-					"name": "derivedColumn4"
-				},
-				{
 					"name": "monthyearderive"
 				},
 				{
-					"name": "filter8"
-				},
-				{
-					"name": "aggregate4"
+					"name": "inventoryCount"
 				},
 				{
 					"name": "derivedColumn5"
+				},
+				{
+					"name": "window1"
+				},
+				{
+					"name": "join6"
+				},
+				{
+					"name": "select6"
+				},
+				{
+					"name": "selectInventoryLeft"
+				},
+				{
+					"name": "join7"
+				},
+				{
+					"name": "select7"
 				}
 			],
 			"scriptLines": [
@@ -191,16 +191,7 @@
 				"policysalesjoin filter((isNull(policy_number)) &&(!isNull(sold_on))) ~> filter7",
 				"filter7 aggregate(groupBy(year,",
 				"          month),",
-				"     no_insurance_count = count(select1@car_id)) ~> aggregate2",
-				"derivedColumn4 derive(year = year(ad_placed_on),",
-				"          month = month(ad_placed_on)) ~> derivedColumn2",
-				"derivedColumn2 derive(not_sold = case(sold=='N',1,0)) ~> derivedColumn3",
-				"derivedColumn3 aggregate(groupBy(year,",
-				"          month = derivedColumn2@month),",
-				"     abcount = count(car_id)) ~> aggregate3",
-				"aggregate3 window(asc(year, true),",
-				"     asc(month, true),",
-				"     inventory_count = sum(abcount)) ~> window1",
+				"     no_insurance_count = count(select1@car_id)) ~> carsoldwithoutinsurance",
 				"SalesCount, AvgSellingPrice join(SalesCount@year == AvgSellingPrice@year",
 				"     && SalesCount@month == AvgSellingPrice@month,",
 				"     joinType:'inner',",
@@ -248,13 +239,13 @@
 				"     skipDuplicateMapOutputs: true) ~> select4",
 				"select4, NoOfDealerSales join(select4@year == NoOfDealerSales@year",
 				"     && select4@month == NoOfDealerSales@month,",
-				"     joinType:'inner',",
+				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join5",
 				"join5 select(mapColumn(",
-				"          year = NoOfDealerSales@year,",
-				"          month = NoOfDealerSales@month,",
+				"          year = select4@year,",
+				"          month = select4@month,",
 				"          Sales_Count,",
 				"          Avg_Selling_Price,",
 				"          No_Of_Cars_Sold,",
@@ -264,14 +255,58 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select5",
 				"salesData derive(year = case(isNull(sold_on),year(ad_placed_on),year(sold_on)),",
-				"          month = case(isNull(sold_on),month(ad_placed_on),month(sold_on))) ~> derivedColumn4",
-				"salesData derive(year = case(isNull(sold_on),year(ad_placed_on),year(sold_on)),",
 				"          month = case(isNull(sold_on),month(ad_placed_on),month(sold_on))) ~> monthyearderive",
-				"derivedColumn5 filter(isNull(sold_on)) ~> filter8",
-				"filter8 aggregate(groupBy(year,",
+				"derivedColumn5 aggregate(groupBy(year,",
 				"          month),",
-				"     Not_sold_count = sum(Not_sold)) ~> aggregate4",
-				"select1 derive(Not_sold = case(sold=='N',1,0)) ~> derivedColumn5"
+				"     Not_sold_count = sum(Not_sold)) ~> inventoryCount",
+				"select1 derive(Not_sold = case(sold=='N',1,0)) ~> derivedColumn5",
+				"inventoryCount window(asc(year, true),",
+				"     asc(month, true),",
+				"     inventory_left = sum(Not_sold_count)) ~> window1",
+				"select5, selectInventoryLeft join(select5@year == selectInventoryLeft@year",
+				"     && select5@month == selectInventoryLeft@month,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join6",
+				"join6 select(mapColumn(",
+				"          year = select5@year,",
+				"          month = select5@month,",
+				"          Sales_Count,",
+				"          Avg_Selling_Price,",
+				"          No_Of_Cars_Sold,",
+				"          No_Of_Individual_Sales,",
+				"          No_Of_Dealer_Sales,",
+				"          inventory_count",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select6",
+				"window1 select(mapColumn(",
+				"          year,",
+				"          month,",
+				"          inventory_count = inventory_left",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectInventoryLeft",
+				"select6, carsoldwithoutinsurance join(select6@year == carsoldwithoutinsurance@year",
+				"     && select6@month == carsoldwithoutinsurance@month,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join7",
+				"join7 select(mapColumn(",
+				"          year = select6@year,",
+				"          month = select6@month,",
+				"          Sales_Count,",
+				"          Avg_Selling_Price,",
+				"          No_Of_Cars_Sold,",
+				"          No_Of_Individual_Sales,",
+				"          No_Of_Dealer_Sales,",
+				"          inventory_count,",
+				"          no_insurance_count",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select7"
 			]
 		}
 	}

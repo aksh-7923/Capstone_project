@@ -21,6 +21,10 @@
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "salesfacttable",
+						"type": "DatasetReference"
+					},
 					"name": "sink1"
 				}
 			],
@@ -313,6 +317,10 @@
 				"     skipDuplicateMapOutputs: true) ~> select7",
 				"select7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]

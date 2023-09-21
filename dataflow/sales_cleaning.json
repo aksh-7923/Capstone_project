@@ -15,22 +15,31 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "sales_silver",
-						"type": "DatasetReference"
-					},
-					"name": "adls"
-				},
-				{
-					"dataset": {
 						"referenceName": "sales_silver_sql",
 						"type": "DatasetReference"
 					},
 					"name": "sqldb"
+				},
+				{
+					"dataset": {
+						"referenceName": "sales_silver",
+						"type": "DatasetReference"
+					},
+					"name": "SalesSinkAdls"
 				}
 			],
 			"transformations": [
 				{
 					"name": "DatatypeCorrection"
+				},
+				{
+					"name": "window1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -52,16 +61,36 @@
 				"     ignoreNoFilesFound: false) ~> sales",
 				"sales derive(ad_placed_on = toTimestamp(ad_placed_on, \"yyyy-MM-dd HH:mm\"),",
 				"          sold_on = toTimestamp(sold_on, \"yyyy-MM-dd HH:mm\")) ~> DatatypeCorrection",
-				"DatatypeCorrection sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     umask: 0022,",
-				"     preCommands: [],",
-				"     postCommands: [],",
+				"DatatypeCorrection window(over(sales_id,",
+				"          car_id,",
+				"          Region,",
+				"          State,",
+				"          City,",
+				"          seller_type,",
+				"          owner,",
+				"          sold,",
+				"          ad_placed_on,",
+				"          sold_on,",
+				"          selling_price),",
+				"     asc(sales_id, true),",
+				"     rank = rank()) ~> window1",
+				"window1 filter(rank==1) ~> filter1",
+				"filter1 select(mapColumn(",
+				"          sales_id,",
+				"          ad_placed_on,",
+				"          sold_on,",
+				"          selling_price,",
+				"          Region,",
+				"          State,",
+				"          City,",
+				"          seller_type,",
+				"          owner,",
+				"          sold,",
+				"          car_id",
+				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> adls",
-				"DatatypeCorrection sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -71,7 +100,15 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
-				"     partitionBy('hash', 1)) ~> sqldb"
+				"     partitionBy('hash', 1)) ~> sqldb",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SalesSinkAdls"
 			]
 		}
 	}

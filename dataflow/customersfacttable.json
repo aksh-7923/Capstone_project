@@ -192,7 +192,7 @@
 				"          kms_driven,",
 				"          avg_speed,",
 				"          is_customer_health_insured = HHInsurance,",
-				"          is_customer_defaulter = CarLoan,",
+				"          is_customer_having_car_loan = CarLoan,",
 				"          is_customer_defaulter,",
 				"          risk_category",
 				"     ),",

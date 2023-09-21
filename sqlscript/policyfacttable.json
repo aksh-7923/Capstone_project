@@ -2,7 +2,7 @@
 	"name": "policyfacttable",
 	"properties": {
 		"content": {
-			"query": "DROP TABLE Policyfacttable;\nDROP TABLE Salesfacttable\n\n\nCREATE TABLE Policyfacttable (\n    [month] INT,\n    [year] INT,\n    Number_of_customers INT,\n    sold_cars_policies INT,\n    inventory_car_policies INT,\n    liable_cars INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([month])\n);\n\nCREATE TABLE Salesfacttable (\n    [year] INT,\n    [month] INT,\n    Avg_Selling_Price FLOAT,\n    No_Of_Cars_Sold INT,\n    No_Of_Individual_Sales INT,\n    No_Of_Dealer_Sales INT,\n    inventory_count INT,\n    no_insurance_count INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([year])\n);\n",
+			"query": "DROP TABLE Policyfacttable;\nDROP TABLE Salesfacttable\n\n\nCREATE TABLE Policyfacttable (\n    [month] INT,\n    [year] INT,\n    Number_of_customers INT,\n    sold_car_policies INT,\n    inventory_car_policies INT,\n    liable_cars INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([month])\n);\n\nCREATE TABLE Salesfacttable (\n    [year] INT,\n    [month] INT,\n    Avg_Selling_Price FLOAT,\n    No_Of_Cars_Sold INT,\n    No_Of_Individual_Sales INT,\n    No_Of_Dealer_Sales INT,\n    inventory_count INT,\n    no_insurance_count INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([year])\n);\n",
 			"metadata": {
 				"language": "sql"
 			},

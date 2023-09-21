@@ -130,7 +130,14 @@
 						},
 						"sqlWriterUseTableLock": false
 					},
-					"enableStaging": false,
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "staginglinkedservice",
+							"type": "LinkedServiceReference"
+						},
+						"path": "capstone-filesystem/staging"
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
@@ -233,7 +240,14 @@
 						},
 						"sqlWriterUseTableLock": false
 					},
-					"enableStaging": false,
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "staginglinkedservice",
+							"type": "LinkedServiceReference"
+						},
+						"path": "capstone-filesystem/staging"
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,

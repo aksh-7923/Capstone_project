@@ -1,0 +1,47 @@
+{
+	"name": "SqlPoolTable1",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "month",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "year",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Number_of_customers",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "sold_cars_policies",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "inventory_car_policies",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "liable_cars",
+				"type": "float",
+				"precision": 15
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Policyfacttable"
+		},
+		"sqlPool": {
+			"referenceName": "capstonefacttable",
+			"type": "SqlPoolReference"
+		}
+	}
+}

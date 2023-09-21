@@ -305,7 +305,6 @@
 				"join7 select(mapColumn(",
 				"          year = select6@year,",
 				"          month = select6@month,",
-				"          Sales_Count,",
 				"          Avg_Selling_Price,",
 				"          No_Of_Cars_Sold,",
 				"          No_Of_Individual_Sales,",

@@ -1,0 +1,57 @@
+{
+	"name": "SqlPoolTable2",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "year",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "month",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Avg_Selling_Price",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "No_Of_Cars_Sold",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "No_Of_Individual_Sales",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "No_Of_Dealer_Sales",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "inventory_count",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "no_insurance_count",
+				"type": "float",
+				"precision": 15
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Salesfacttable"
+		},
+		"sqlPool": {
+			"referenceName": "capstonefacttable",
+			"type": "SqlPoolReference"
+		}
+	}
+}

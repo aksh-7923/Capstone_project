@@ -1,0 +1,17 @@
+{
+	"name": "metrics",
+	"properties": {
+		"content": {
+			"query": "-- customerID,is_customer_health insured, is_customer_having car_loan,\n\nSELECT customer_id, HHInsurance, CarLoan,\n(CASE WHEN Balance>0 Then \"YES\" ELSE \"NO\" END) as is_deafulter\nfrom customers\n\n-- policy\nwith base1 as(\nSELECT YEAR(policy_bind_date) as year, MONTH(policy_bind_date) as month,\ncount(policy_number) as number_of_customers from policy\ngroup by YEAR(policy_bind_date), MONTH(policy_bind_date)),\nbase2 as(\nselect *, \n);\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date)\nHAVING s.sold=\"Y\";\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id and s.sold=\"Y\" \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date);\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date)\nHAVING s.sold=\"N\";\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

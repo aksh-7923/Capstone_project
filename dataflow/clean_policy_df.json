@@ -9,28 +9,91 @@
 						"referenceName": "policy_dataset",
 						"type": "DatasetReference"
 					},
-					"name": "policySrc"
+					"name": "source1"
 				}
 			],
 			"sinks": [
-				{
-					"dataset": {
-						"referenceName": "policy_parquet",
-						"type": "DatasetReference"
-					},
-					"name": "policySinkADLS"
-				},
 				{
 					"dataset": {
 						"referenceName": "AzureSqlDB_Dataset",
 						"type": "DatasetReference"
 					},
 					"name": "policySinkSQLDB"
+				},
+				{
+					"dataset": {
+						"referenceName": "policy_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "policySinkAdls"
 				}
 			],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "window1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
+				"          policy_number as integer,",
+				"          policy_bind_date as date,",
+				"          policy_state as string,",
+				"          policy_csl as string,",
+				"          policy_deductable as integer,",
+				"          policy_annual_premium as float,",
+				"          umbrella_limit as integer,",
+				"          car_id as integer,",
+				"          customer_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 window(over(policy_state,",
+				"          policy_csl,",
+				"          policy_number,",
+				"          policy_bind_date,",
+				"          policy_deductable,",
+				"          policy_annual_premium,",
+				"          umbrella_limit,",
+				"          car_id,",
+				"          customer_id),",
+				"     asc(policy_number, true),",
+				"     rank = rank()) ~> window1",
+				"window1 filter(rank==1) ~> filter1",
+				"filter1 select(mapColumn(",
+				"          policy_number,",
+				"          policy_bind_date,",
+				"          policy_state,",
+				"          policy_csl,",
+				"          policy_deductable,",
+				"          policy_annual_premium,",
+				"          umbrella_limit,",
+				"          car_id,",
+				"          customer_id",
+				"     ),",
+				"     partitionBy('hash', 1),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     partitionBy('hash', 1)) ~> policySinkSQLDB",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
 				"          policy_number as integer,",
 				"          policy_bind_date as date,",
 				"          policy_state as string,",
@@ -41,27 +104,14 @@
 				"          car_id as integer,",
 				"          customer_id as integer",
 				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> policySrc",
-				"policySrc sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
 				"     format: 'parquet',",
+				"     partitionFileNames:['policydata'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> policySinkADLS",
-				"policySrc sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> policySinkSQLDB"
+				"     partitionBy('hash', 1)) ~> policySinkAdls"
 			]
 		}
 	}

@@ -1,0 +1,53 @@
+{
+	"name": "customerfact",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "kms_driven",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "avg_speed",
+				"type": "decimal",
+				"precision": 5,
+				"scale": 2
+			},
+			{
+				"name": "is_customer_health_insured",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "is_customer_having_car_loan",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "is_customer_defaulter",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "risk_category",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "CustomerFactData"
+		},
+		"sqlPool": {
+			"referenceName": "capstonefacttable",
+			"type": "SqlPoolReference"
+		}
+	}
+}

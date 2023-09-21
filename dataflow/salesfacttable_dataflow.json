@@ -305,7 +305,6 @@
 				"join7 select(mapColumn(",
 				"          year = select6@year,",
 				"          month = select6@month,",
-				"          Sales_Count,",
 				"          Avg_Selling_Price,",
 				"          No_Of_Cars_Sold,",
 				"          No_Of_Individual_Sales,",
@@ -318,11 +317,13 @@
 				"select7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
+				"     partitionFileNames:['salesfacttable'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
 			]
 		}
 	}

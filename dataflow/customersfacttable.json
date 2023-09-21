@@ -36,10 +36,10 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "customerfacts",
+						"referenceName": "goldparquetadls",
 						"type": "DatasetReference"
 					},
-					"name": "customerfacts"
+					"name": "goldsink"
 				}
 			],
 			"transformations": [
@@ -60,9 +60,6 @@
 				},
 				{
 					"name": "select2"
-				},
-				{
-					"name": "derivedColumn1"
 				},
 				{
 					"name": "join4"
@@ -148,13 +145,13 @@
 				"     broadcast: 'auto')~> join1",
 				"join3 select(mapColumn(",
 				"          CustomerID,",
-				"          Balance,",
 				"          HHInsurance,",
 				"          CarLoan,",
 				"          {Vehcile Speed},",
 				"          {Vehicle Distance},",
 				"          {Event Timestamp},",
-				"          km_driven",
+				"          km_driven,",
+				"          is_customer_defaulter = Default",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
@@ -175,13 +172,15 @@
 				"          CustomerID,",
 				"          HHInsurance,",
 				"          CarLoan,",
+				"          {Vehcile Speed},",
+				"          {Vehicle Distance},",
+				"          {Event Timestamp},",
 				"          km_driven,",
-				"          Balance",
+				"          is_customer_defaulter",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select2 derive(is_customer_defaulter = iif(Balance>0, 1, 0)) ~> derivedColumn1",
-				"aggregate1, derivedColumn1 join(aggregate1@CustomerID == select2@CustomerID,",
+				"aggregate1, select2 join(aggregate1@CustomerID == select2@CustomerID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -193,21 +192,23 @@
 				"          kms_driven,",
 				"          avg_speed,",
 				"          is_customer_health_insured = HHInsurance,",
-				"          is_customer_defaulter = CarLoan,",
+				"          is_customer_having_car_loan = CarLoan,",
 				"          is_customer_defaulter,",
 				"          risk_category",
 				"     ),",
+				"     partitionBy('hash', 1),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
 				"select3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
+				"     partitionFileNames:['customerfacts'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> customerfacts"
+				"     partitionBy('hash', 1)) ~> goldsink"
 			]
 		}
 	}

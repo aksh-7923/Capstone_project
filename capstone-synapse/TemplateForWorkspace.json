@@ -1,0 +1,4231 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "capstone-synapse"
+		},
+		"AzureSqlDatabase1811_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1811'"
+		},
+		"LS_to_AzureSqlDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_to_AzureSqlDB'"
+		},
+		"capstone-synapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'capstone-synapse-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:capstone-synapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"customerSQLdb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'customerSQLdb'"
+		},
+		"customer_DB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'customer_DB'"
+		},
+		"sales_silver_sql_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'sales_silver_sql'"
+		},
+		"staginglinkedservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'staginglinkedservice'"
+		},
+		"syn-workspace01-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'syn-workspace01-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:syn-workspace01.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"synapsepro-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'synapsepro-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapsepro.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"testsql_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'testsql'"
+		},
+		"capstone-synapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://capstonesecondcars.dfs.core.windows.net"
+		},
+		"syn-workspace01-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://synapsestore01.dfs.core.windows.net"
+		},
+		"synapsepro-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsglobalaayush.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/CarsPipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "CarsDataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Cars": {},
+									"Carsdb": {},
+									"carsSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/CarsDataflow')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Customer_cleaning')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "customer_cleaning",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"customers": {},
+									"customerdb": {},
+									"customersSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Sales_cleaning')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "sales_cleaning",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sales": {},
+									"sqldb": {},
+									"SalesSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/sales_cleaning')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/clean_policy_pipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "clean_policy_df",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"policySinkSQLDB": {},
+									"policySinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/clean_policy_df')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customersfactpipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "customersfacttable",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"customerssourcehist": {},
+									"streamdata1": {},
+									"carssilverdata": {},
+									"policysilverdata": {},
+									"goldsink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Dedicatedpool",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Data flow1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlPoolSink",
+								"writeBehavior": "Upsert",
+								"upsertSettings": {
+									"keys": [
+										"CustomerID"
+									],
+									"interimSchemaName": ""
+								},
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "staginglinkedservice",
+									"type": "LinkedServiceReference"
+								},
+								"path": "capstone-filesystem/staging",
+								"enableCompression": false
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "goldparquetadls",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "customerfact",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/customersfacttable')]",
+				"[concat(variables('workspaceId'), '/datasets/goldparquetadls')]",
+				"[concat(variables('workspaceId'), '/datasets/customerfact')]",
+				"[concat(variables('workspaceId'), '/linkedServices/staginglinkedservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policy_facttable')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "policyfacttable_dataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"policysource": {},
+									"salessource": {},
+									"salessink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/policyfacttable_dataflow')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/scheduled_pipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "customersfacttable",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"customerssourcehist": {},
+									"streamdata1": {},
+									"carssilverdata": {},
+									"policysilverdata": {},
+									"goldsink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/customersfacttable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/staticfacttables')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "cleaningpolicy",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "clean_policy_df",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"policySinkSQLDB": {},
+									"policySinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "policyfacttable",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "sales_cleaning",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "cleaningpolicy",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "policyfacttable_dataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"policysource": {},
+									"salessource": {},
+									"salessink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "sales_cleaning",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "sales_cleaning",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sales": {},
+									"sqldb": {},
+									"SalesSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "sales_fact",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sales_facttable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlPoolSink",
+								"writeBehavior": "Upsert",
+								"upsertSettings": {
+									"keys": [
+										"year",
+										"month"
+									],
+									"interimSchemaName": ""
+								},
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "staginglinkedservice",
+									"type": "LinkedServiceReference"
+								},
+								"path": "capstone-filesystem/staging"
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "gold_source_sales",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlPoolTable2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "sales_facttable",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "cleaningpolicy",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "sales_cleaning",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "salesfacttable_dataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"salesData": {},
+									"policyData": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "policy_fact",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "policyfacttable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlPoolSink",
+								"writeBehavior": "Upsert",
+								"upsertSettings": {
+									"keys": [
+										"year",
+										"month"
+									],
+									"interimSchemaName": ""
+								},
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "staginglinkedservice",
+									"type": "LinkedServiceReference"
+								},
+								"path": "capstone-filesystem/staging"
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "gold_source_policy",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlPoolTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "customers_cleaning",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"customers": {},
+									"customerdb": {},
+									"customersSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "cars_cleaning",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "CarsDataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Cars": {},
+									"Carsdb": {},
+									"carsSinkAdls": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/clean_policy_df')]",
+				"[concat(variables('workspaceId'), '/dataflows/policyfacttable_dataflow')]",
+				"[concat(variables('workspaceId'), '/dataflows/sales_cleaning')]",
+				"[concat(variables('workspaceId'), '/datasets/gold_source_sales')]",
+				"[concat(variables('workspaceId'), '/datasets/SqlPoolTable2')]",
+				"[concat(variables('workspaceId'), '/dataflows/salesfacttable_dataflow')]",
+				"[concat(variables('workspaceId'), '/datasets/gold_source_policy')]",
+				"[concat(variables('workspaceId'), '/datasets/SqlPoolTable1')]",
+				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]",
+				"[concat(variables('workspaceId'), '/dataflows/CarsDataflow')]",
+				"[concat(variables('workspaceId'), '/linkedServices/staginglinkedservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/test_pipeline')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "customersfacttable_copy1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"customerssourcehist": {},
+									"streamdata1": {},
+									"carssilverdata": {},
+									"policysilverdata": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/customersfacttable_copy1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDB_Dataset')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_to_AzureSqlDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"table": "policy_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_to_AzureSqlDB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1811",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "cars_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1811')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "testsql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "test"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/testsql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CarsLinkedService')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "cars.csv",
+						"folderPath": "bronze/cars",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "car_id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "km_driven",
+						"type": "String"
+					},
+					{
+						"name": "fuel",
+						"type": "String"
+					},
+					{
+						"name": "transmission",
+						"type": "String"
+					},
+					{
+						"name": "mileage",
+						"type": "String"
+					},
+					{
+						"name": "engine",
+						"type": "String"
+					},
+					{
+						"name": "max_power",
+						"type": "String"
+					},
+					{
+						"name": "torque",
+						"type": "String"
+					},
+					{
+						"name": "seats",
+						"type": "String"
+					},
+					{
+						"name": "model",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CarsSink')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/cars",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "facts",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/cars",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet3')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "part-00000-2bbc4a75-b093-4fcd-a18d-ea577a2bebac-c000.snappy.parquet",
+						"folderPath": "silver/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "policy_number",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_bind_date",
+						"type": "DATE"
+					},
+					{
+						"name": "policy_state",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_csl",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_deductable",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_annual_premium",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "umbrella_limit",
+						"type": "INT32"
+					},
+					{
+						"name": "car_id",
+						"type": "INT32"
+					},
+					{
+						"name": "customer_id",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet4')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SqlPoolTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "month",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Number_of_customers",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "sold_cars_policies",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "inventory_car_policies",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "liable_cars",
+						"type": "float",
+						"precision": 15
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Policyfacttable"
+				},
+				"sqlPool": {
+					"referenceName": "capstonefacttable",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/capstonefacttable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SqlPoolTable2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "month",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Avg_Selling_Price",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "No_Of_Cars_Sold",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "No_Of_Individual_Sales",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "No_Of_Dealer_Sales",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "inventory_count",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "no_insurance_count",
+						"type": "float",
+						"precision": 15
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Salesfacttable"
+				},
+				"sqlPool": {
+					"referenceName": "capstonefacttable",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/capstonefacttable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customer_sqldb')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "customerSQLdb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "db",
+					"table": "customer_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/customerSQLdb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customerdataset')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "bronze/customers",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "Region",
+						"type": "String"
+					},
+					{
+						"name": "State",
+						"type": "String"
+					},
+					{
+						"name": "City",
+						"type": "String"
+					},
+					{
+						"name": "seller_type",
+						"type": "String"
+					},
+					{
+						"name": "owner",
+						"type": "String"
+					},
+					{
+						"name": "Job",
+						"type": "String"
+					},
+					{
+						"name": "Marital",
+						"type": "String"
+					},
+					{
+						"name": "Education",
+						"type": "String"
+					},
+					{
+						"name": "Default",
+						"type": "String"
+					},
+					{
+						"name": "Balance",
+						"type": "String"
+					},
+					{
+						"name": "HHInsurance",
+						"type": "String"
+					},
+					{
+						"name": "CarLoan",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customerfact')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "kms_driven",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "avg_speed",
+						"type": "decimal",
+						"precision": 5,
+						"scale": 2
+					},
+					{
+						"name": "is_customer_health_insured",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "is_customer_having_car_loan",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "is_customer_defaulter",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "risk_category",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "CustomerFactData"
+				},
+				"sqlPool": {
+					"referenceName": "capstonefacttable",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/capstonefacttable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customerfacts')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "facts/customers",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customersLinked')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "customer_DB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "customer_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/customer_DB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customers_silver')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/customers",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customersqldb')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "customer_DB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "customer_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/customer_DB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/gold_source_policy')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "policyfactstable",
+						"folderPath": "facts/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/gold_source_sales')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "salesfacttable",
+						"folderPath": "facts/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/goldparquetadls')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customerfacts",
+						"folderPath": "facts/customers",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policy_dataset')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "policy.csv",
+						"folderPath": "bronze/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "policy_number",
+						"type": "String"
+					},
+					{
+						"name": "policy_bind_date",
+						"type": "String"
+					},
+					{
+						"name": "policy_state",
+						"type": "String"
+					},
+					{
+						"name": "policy_csl",
+						"type": "String"
+					},
+					{
+						"name": "policy_deductable",
+						"type": "String"
+					},
+					{
+						"name": "policy_annual_premium",
+						"type": "String"
+					},
+					{
+						"name": "umbrella_limit",
+						"type": "String"
+					},
+					{
+						"name": "car_id",
+						"type": "String"
+					},
+					{
+						"name": "customer_id",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policy_parquet')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "policy_number",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_bind_date",
+						"type": "DATE"
+					},
+					{
+						"name": "policy_state",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_csl",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_deductable",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_annual_premium",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "umbrella_limit",
+						"type": "INT32"
+					},
+					{
+						"name": "car_id",
+						"type": "INT32"
+					},
+					{
+						"name": "customer_id",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policysourceparquet')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "part-00000-2bbc4a75-b093-4fcd-a18d-ea577a2bebac-c000.snappy.parquet",
+						"folderPath": "silver/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "policy_number",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_bind_date",
+						"type": "DATE"
+					},
+					{
+						"name": "policy_state",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_csl",
+						"type": "UTF8"
+					},
+					{
+						"name": "policy_deductable",
+						"type": "INT32"
+					},
+					{
+						"name": "policy_annual_premium",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "umbrella_limit",
+						"type": "INT32"
+					},
+					{
+						"name": "car_id",
+						"type": "INT32"
+					},
+					{
+						"name": "customer_id",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "sales.csv",
+						"folderPath": "bronze/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "sales_id",
+						"type": "String"
+					},
+					{
+						"name": "ad_placed_on",
+						"type": "String"
+					},
+					{
+						"name": "sold_on",
+						"type": "String"
+					},
+					{
+						"name": "selling_price",
+						"type": "String"
+					},
+					{
+						"name": "Region",
+						"type": "String"
+					},
+					{
+						"name": "State",
+						"type": "String"
+					},
+					{
+						"name": "City",
+						"type": "String"
+					},
+					{
+						"name": "seller_type",
+						"type": "String"
+					},
+					{
+						"name": "owner",
+						"type": "String"
+					},
+					{
+						"name": "sold",
+						"type": "String"
+					},
+					{
+						"name": "car_id",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales_silver')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "silver/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales_silver_dataset')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "part-00000-60e14114-2119-459e-a55b-e77d9d3baf62-c000.snappy.parquet",
+						"folderPath": "silver/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "sales_id",
+						"type": "INT32"
+					},
+					{
+						"name": "ad_placed_on",
+						"type": "INT96"
+					},
+					{
+						"name": "sold_on",
+						"type": "INT96"
+					},
+					{
+						"name": "selling_price",
+						"type": "INT32"
+					},
+					{
+						"name": "Region",
+						"type": "UTF8"
+					},
+					{
+						"name": "State",
+						"type": "UTF8"
+					},
+					{
+						"name": "City",
+						"type": "UTF8"
+					},
+					{
+						"name": "seller_type",
+						"type": "UTF8"
+					},
+					{
+						"name": "owner",
+						"type": "UTF8"
+					},
+					{
+						"name": "sold",
+						"type": "UTF8"
+					},
+					{
+						"name": "car_id",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales_silver_sql')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "sales_silver_sql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "sales_silver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/sales_silver_sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/salesfactstablesink')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "facts/policy",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/salesfacttable')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "facts/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/salessourceparquet')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "part-00000-60e14114-2119-459e-a55b-e77d9d3baf62-c000.snappy.parquet",
+						"folderPath": "silver/sales",
+						"fileSystem": "capstone-filesystem"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "sales_id",
+						"type": "INT32"
+					},
+					{
+						"name": "ad_placed_on",
+						"type": "INT96"
+					},
+					{
+						"name": "sold_on",
+						"type": "INT96"
+					},
+					{
+						"name": "selling_price",
+						"type": "INT32"
+					},
+					{
+						"name": "Region",
+						"type": "UTF8"
+					},
+					{
+						"name": "State",
+						"type": "UTF8"
+					},
+					{
+						"name": "City",
+						"type": "UTF8"
+					},
+					{
+						"name": "seller_type",
+						"type": "UTF8"
+					},
+					{
+						"name": "owner",
+						"type": "UTF8"
+					},
+					{
+						"name": "sold",
+						"type": "UTF8"
+					},
+					{
+						"name": "car_id",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/streamdata1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "streamdata",
+						"fileSystem": "capstone-filesystem"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Customer ID",
+						"type": "String"
+					},
+					{
+						"name": "Device ID",
+						"type": "String"
+					},
+					{
+						"name": "Vehcile Speed",
+						"type": "String"
+					},
+					{
+						"name": "Vehicle Distance",
+						"type": "String"
+					},
+					{
+						"name": "Latitude",
+						"type": "String"
+					},
+					{
+						"name": "Longitude",
+						"type": "String"
+					},
+					{
+						"name": "Event Timestamp",
+						"type": "String"
+					},
+					{
+						"name": "EventProcessedUtcTime",
+						"type": "String"
+					},
+					{
+						"name": "PartitionId",
+						"type": "String"
+					},
+					{
+						"name": "EventEnqueuedUtcTime",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/capstone-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1811')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1811_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_to_AzureSqlDB')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "This is a Linked service for SQL DB",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_to_AzureSqlDB_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/capstone-synapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('capstone-synapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/capstone-synapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('capstone-synapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customerSQLdb')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('customerSQLdb_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customer_DB')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('customer_DB_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales_silver_sql')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('sales_silver_sql_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/staginglinkedservice')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('staginglinkedservice_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/syn-workspace01-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('syn-workspace01-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/syn-workspace01-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('syn-workspace01-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapsepro-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('synapsepro-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapsepro-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('synapsepro-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/testsql')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('testsql_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/scheduled_trigger')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "scheduled_pipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 12,
+						"startTime": "2023-09-20T11:00:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/scheduled_pipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CarsDataflow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "CarsLinkedService",
+								"type": "DatasetReference"
+							},
+							"name": "Cars"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference"
+							},
+							"name": "Carsdb"
+						},
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "carsSinkAdls"
+						}
+					],
+					"transformations": [
+						{
+							"name": "window1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          car_id as integer,",
+						"          name as string,",
+						"          km_driven as integer,",
+						"          fuel as string,",
+						"          transmission as string,",
+						"          mileage as string,",
+						"          engine as string,",
+						"          max_power as string,",
+						"          torque as string,",
+						"          seats as integer,",
+						"          model as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     partitionBy('hash', 1)) ~> Cars",
+						"Cars window(over(car_id,",
+						"          name,",
+						"          fuel,",
+						"          transmission,",
+						"          mileage,",
+						"          engine,",
+						"          max_power,",
+						"          torque,",
+						"          model,",
+						"          km_driven,",
+						"          seats),",
+						"     asc(car_id, true),",
+						"     rank = rank()) ~> window1",
+						"window1 filter(rank==1) ~> filter1",
+						"filter1 select(mapColumn(",
+						"          car_id,",
+						"          name,",
+						"          km_driven,",
+						"          fuel,",
+						"          transmission,",
+						"          mileage,",
+						"          engine,",
+						"          max_power,",
+						"          torque,",
+						"          seats,",
+						"          model",
+						"     ),",
+						"     partitionBy('hash', 1),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     partitionBy('hash', 1)) ~> Carsdb",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> carsSinkAdls"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/CarsLinkedService')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Dataflow1')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "customerdataset",
+								"type": "DatasetReference"
+							},
+							"name": "customers"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "customersLinked",
+								"type": "DatasetReference"
+							},
+							"name": "customerdb"
+						},
+						{
+							"dataset": {
+								"referenceName": "customers_silver",
+								"type": "DatasetReference"
+							},
+							"name": "customersSinkAdls"
+						}
+					],
+					"transformations": [
+						{
+							"name": "window1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          Job as string,",
+						"          Marital as string,",
+						"          Education as string,",
+						"          Default as integer,",
+						"          Balance as integer,",
+						"          HHInsurance as integer,",
+						"          CarLoan as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> customers",
+						"customers window(over(CustomerID,",
+						"          Region,",
+						"          State,",
+						"          City,",
+						"          seller_type,",
+						"          owner,",
+						"          Job,",
+						"          Marital,",
+						"          Education,",
+						"          Default,",
+						"          Balance,",
+						"          HHInsurance,",
+						"          CarLoan),",
+						"     asc(CustomerID, true),",
+						"     rank = rank()) ~> window1",
+						"window1 filter(rank==1) ~> filter1",
+						"filter1 select(mapColumn(",
+						"          CustomerID,",
+						"          Region,",
+						"          State,",
+						"          City,",
+						"          seller_type,",
+						"          owner,",
+						"          Job,",
+						"          Marital,",
+						"          Education,",
+						"          Default,",
+						"          Balance,",
+						"          HHInsurance,",
+						"          CarLoan",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> customerdb",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> customersSinkAdls"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/customerdataset')]",
+				"[concat(variables('workspaceId'), '/datasets/customersLinked')]",
+				"[concat(variables('workspaceId'), '/datasets/customers_silver')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/clean_policy_df')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "policy_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlDB_Dataset",
+								"type": "DatasetReference"
+							},
+							"name": "policySinkSQLDB"
+						},
+						{
+							"dataset": {
+								"referenceName": "policy_parquet",
+								"type": "DatasetReference"
+							},
+							"name": "policySinkAdls"
+						}
+					],
+					"transformations": [
+						{
+							"name": "window1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as float,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source1 window(over(policy_state,",
+						"          policy_csl,",
+						"          policy_number,",
+						"          policy_bind_date,",
+						"          policy_deductable,",
+						"          policy_annual_premium,",
+						"          umbrella_limit,",
+						"          car_id,",
+						"          customer_id),",
+						"     asc(policy_number, true),",
+						"     rank = rank()) ~> window1",
+						"window1 filter(rank==1) ~> filter1",
+						"filter1 select(mapColumn(",
+						"          policy_number,",
+						"          policy_bind_date,",
+						"          policy_state,",
+						"          policy_csl,",
+						"          policy_deductable,",
+						"          policy_annual_premium,",
+						"          umbrella_limit,",
+						"          car_id,",
+						"          customer_id",
+						"     ),",
+						"     partitionBy('hash', 1),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     partitionBy('hash', 1)) ~> policySinkSQLDB",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as double,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     format: 'parquet',",
+						"     partitionFileNames:['policydata'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> policySinkAdls"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/policy_dataset')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlDB_Dataset')]",
+				"[concat(variables('workspaceId'), '/datasets/policy_parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customersfacttable')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "customers_silver",
+								"type": "DatasetReference"
+							},
+							"name": "customerssourcehist"
+						},
+						{
+							"dataset": {
+								"referenceName": "streamdata1",
+								"type": "DatasetReference"
+							},
+							"name": "streamdata1"
+						},
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "carssilverdata"
+						},
+						{
+							"dataset": {
+								"referenceName": "policy_parquet",
+								"type": "DatasetReference"
+							},
+							"name": "policysilverdata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "goldparquetadls",
+								"type": "DatasetReference"
+							},
+							"name": "goldsink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "join4"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "select3"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          Job as string,",
+						"          Marital as string,",
+						"          Education as string,",
+						"          Default as integer,",
+						"          Balance as integer,",
+						"          HHInsurance as integer,",
+						"          CarLoan as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> customerssourcehist",
+						"source(output(",
+						"          {Customer ID} as integer,",
+						"          {Device ID} as string,",
+						"          {Vehcile Speed} as double,",
+						"          {Vehicle Distance} as double,",
+						"          Latitude as string,",
+						"          Longitude as string,",
+						"          {Event Timestamp} as string,",
+						"          EventProcessedUtcTime as string,",
+						"          PartitionId as string,",
+						"          EventEnqueuedUtcTime as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> streamdata1",
+						"source(output(",
+						"          car_id as integer,",
+						"          name as string,",
+						"          km_driven as integer,",
+						"          fuel as string,",
+						"          transmission as string,",
+						"          mileage as string,",
+						"          engine as string,",
+						"          max_power as string,",
+						"          torque as string,",
+						"          seats as integer,",
+						"          model as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> carssilverdata",
+						"source(output(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as double,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> policysilverdata",
+						"customerssourcehist, streamdata1 join(CustomerID == {Customer ID},",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join3 select(mapColumn(",
+						"          CustomerID,",
+						"          HHInsurance,",
+						"          CarLoan,",
+						"          {Vehcile Speed},",
+						"          {Vehicle Distance},",
+						"          {Event Timestamp},",
+						"          km_driven,",
+						"          is_customer_defaulter = Default",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"join1, policysilverdata join(CustomerID == customer_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2, carssilverdata join(policysilverdata@car_id == carssilverdata@car_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"select1 aggregate(groupBy(CustomerID),",
+						"     kms_driven = sum({Vehicle Distance}),",
+						"          avg_speed = avg({Vehcile Speed})) ~> aggregate1",
+						"select1 select(mapColumn(",
+						"          CustomerID,",
+						"          HHInsurance,",
+						"          CarLoan,",
+						"          {Vehcile Speed},",
+						"          {Vehicle Distance},",
+						"          {Event Timestamp},",
+						"          km_driven,",
+						"          is_customer_defaulter",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"aggregate1, select2 join(aggregate1@CustomerID == select2@CustomerID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join4",
+						"join4 derive(kms_driven = kms_driven+km_driven,",
+						"          risk_category = case(CarLoan==1 && HHInsurance==0 && avg_speed >= 70, \"Very high\", case(CarLoan==1 && HHInsurance==1 && avg_speed>=70, \"High\", case(CarLoan==0 && HHInsurance==1 && avg_speed>=70, \"Medium\", \"Low\")))) ~> derivedColumn2",
+						"derivedColumn2 select(mapColumn(",
+						"          CustomerID = aggregate1@CustomerID,",
+						"          kms_driven,",
+						"          avg_speed,",
+						"          is_customer_health_insured = HHInsurance,",
+						"          is_customer_having_car_loan = CarLoan,",
+						"          is_customer_defaulter,",
+						"          risk_category",
+						"     ),",
+						"     partitionBy('hash', 1),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     partitionFileNames:['customerfacts'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> goldsink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/customers_silver')]",
+				"[concat(variables('workspaceId'), '/datasets/streamdata1')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/datasets/policy_parquet')]",
+				"[concat(variables('workspaceId'), '/datasets/goldparquetadls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customersfacttable_copy1')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "customers_silver",
+								"type": "DatasetReference"
+							},
+							"name": "customerssourcehist"
+						},
+						{
+							"dataset": {
+								"referenceName": "streamdata1",
+								"type": "DatasetReference"
+							},
+							"name": "streamdata1"
+						},
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "carssilverdata"
+						},
+						{
+							"dataset": {
+								"referenceName": "policy_parquet",
+								"type": "DatasetReference"
+							},
+							"name": "policysilverdata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join4"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "select3"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          Job as string,",
+						"          Marital as string,",
+						"          Education as string,",
+						"          Default as integer,",
+						"          Balance as integer,",
+						"          HHInsurance as integer,",
+						"          CarLoan as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> customerssourcehist",
+						"source(output(",
+						"          {Customer ID} as integer,",
+						"          {Device ID} as string,",
+						"          {Vehcile Speed} as double,",
+						"          {Vehicle Distance} as double,",
+						"          Latitude as string,",
+						"          Longitude as string,",
+						"          {Event Timestamp} as string,",
+						"          EventProcessedUtcTime as string,",
+						"          PartitionId as string,",
+						"          EventEnqueuedUtcTime as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> streamdata1",
+						"source(output(",
+						"          car_id as integer,",
+						"          name as string,",
+						"          km_driven as integer,",
+						"          fuel as string,",
+						"          transmission as string,",
+						"          mileage as string,",
+						"          engine as string,",
+						"          max_power as string,",
+						"          torque as string,",
+						"          seats as integer,",
+						"          model as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> carssilverdata",
+						"source(output(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as double,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> policysilverdata",
+						"customerssourcehist, streamdata1 join(CustomerID == {Customer ID},",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join3 select(mapColumn(",
+						"          CustomerID,",
+						"          Balance,",
+						"          HHInsurance,",
+						"          CarLoan,",
+						"          {Vehcile Speed},",
+						"          {Vehicle Distance},",
+						"          {Event Timestamp},",
+						"          km_driven",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"join1, policysilverdata join(CustomerID == customer_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2, carssilverdata join(policysilverdata@car_id == carssilverdata@car_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"select1 aggregate(groupBy(CustomerID),",
+						"     kms_driven = sum({Vehicle Distance}),",
+						"          avg_speed = avg({Vehcile Speed})) ~> aggregate1",
+						"select1 select(mapColumn(",
+						"          CustomerID,",
+						"          HHInsurance,",
+						"          CarLoan,",
+						"          km_driven,",
+						"          Balance",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2 derive(is_customer_defaulter = iif(Balance>0, 1, 0)) ~> derivedColumn1",
+						"aggregate1, derivedColumn1 join(aggregate1@CustomerID == select2@CustomerID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join4",
+						"join4 derive(kms_driven = kms_driven+km_driven,",
+						"          risk_category = case(CarLoan==1 && HHInsurance==0 && avg_speed >= 70, \"Very high\", case(CarLoan==1 && HHInsurance==1 && avg_speed>=70, \"High\", case(CarLoan==0 && HHInsurance==1 && avg_speed>=70, \"Medium\", \"Low\")))) ~> derivedColumn2",
+						"derivedColumn2 select(mapColumn(",
+						"          CustomerID = aggregate1@CustomerID,",
+						"          kms_driven,",
+						"          avg_speed,",
+						"          is_customer_health_insured = HHInsurance,",
+						"          is_customer_defaulter = CarLoan,",
+						"          is_customer_defaulter,",
+						"          risk_category",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     partitionBy('hash', 1)) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/customers_silver')]",
+				"[concat(variables('workspaceId'), '/datasets/streamdata1')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/datasets/policy_parquet')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policyfacttable_dataflow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "policysourceparquet",
+								"type": "DatasetReference"
+							},
+							"name": "policysource"
+						},
+						{
+							"dataset": {
+								"referenceName": "salessourceparquet",
+								"type": "DatasetReference"
+							},
+							"name": "salessource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "salesfactstablesink",
+								"type": "DatasetReference"
+							},
+							"name": "salessink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1monthandyear"
+						},
+						{
+							"name": "numberofcustomers"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "soldcarpolicies"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "inventorycarpolicies"
+						},
+						{
+							"name": "filter3"
+						},
+						{
+							"name": "liablecarsaggregation"
+						},
+						{
+							"name": "join6"
+						},
+						{
+							"name": "join7"
+						},
+						{
+							"name": "join8"
+						},
+						{
+							"name": "select2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as double,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> policysource",
+						"source(output(",
+						"          sales_id as integer,",
+						"          ad_placed_on as timestamp,",
+						"          sold_on as timestamp,",
+						"          selling_price as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          sold as string,",
+						"          car_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> salessource",
+						"select1 derive(year = year(policy_bind_date),",
+						"          month = month(policy_bind_date)) ~> derivedColumn1monthandyear",
+						"derivedColumn1monthandyear aggregate(groupBy(year,",
+						"          month),",
+						"     Number_of_customers = countDistinct(policy_number)) ~> numberofcustomers",
+						"policysource, salessource join(policysource@car_id == salessource@car_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 select(mapColumn(",
+						"          policy_number,",
+						"          policy_bind_date,",
+						"          umbrella_limit,",
+						"          car_id = policysource@car_id,",
+						"          customer_id,",
+						"          sales_id,",
+						"          selling_price,",
+						"          sold",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"derivedColumn1monthandyear filter(sold=='Y') ~> filter1",
+						"filter1 aggregate(groupBy(year,",
+						"          month),",
+						"     sold_car_policies = countDistinct(policy_number)) ~> soldcarpolicies",
+						"derivedColumn1monthandyear filter(sold=='N') ~> filter2",
+						"filter2 aggregate(groupBy(year,",
+						"          month),",
+						"     inventory_car_policies = countDistinct(policy_number)) ~> inventorycarpolicies",
+						"derivedColumn1monthandyear filter(selling_price>umbrella_limit) ~> filter3",
+						"filter3 aggregate(groupBy(year,",
+						"          month),",
+						"     liable_cars = countDistinct(policy_number)) ~> liablecarsaggregation",
+						"numberofcustomers, soldcarpolicies join(numberofcustomers@year == soldcarpolicies@year",
+						"     && numberofcustomers@month == soldcarpolicies@month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join6",
+						"join6, inventorycarpolicies join(numberofcustomers@year == inventorycarpolicies@year",
+						"     && numberofcustomers@month == inventorycarpolicies@month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join7",
+						"join7, liablecarsaggregation join(numberofcustomers@year == liablecarsaggregation@year",
+						"     && numberofcustomers@month == liablecarsaggregation@month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join8",
+						"join8 select(mapColumn(",
+						"          year = numberofcustomers@year,",
+						"          month = numberofcustomers@month,",
+						"          Number_of_customers,",
+						"          sold_car_policies,",
+						"          inventory_car_policies,",
+						"          liable_cars",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     partitionFileNames:['policyfactstable'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> salessink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/policysourceparquet')]",
+				"[concat(variables('workspaceId'), '/datasets/salessourceparquet')]",
+				"[concat(variables('workspaceId'), '/datasets/salesfactstablesink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sales_cleaning')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "sales",
+								"type": "DatasetReference"
+							},
+							"name": "sales"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "sales_silver_sql",
+								"type": "DatasetReference"
+							},
+							"name": "sqldb"
+						},
+						{
+							"dataset": {
+								"referenceName": "sales_silver",
+								"type": "DatasetReference"
+							},
+							"name": "SalesSinkAdls"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DatatypeCorrection"
+						},
+						{
+							"name": "window1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          sales_id as integer,",
+						"          ad_placed_on as string,",
+						"          sold_on as string,",
+						"          selling_price as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          sold as string,",
+						"          car_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> sales",
+						"sales derive(ad_placed_on = toTimestamp(ad_placed_on, \"yyyy-MM-dd HH:mm\"),",
+						"          sold_on = toTimestamp(sold_on, \"yyyy-MM-dd HH:mm\")) ~> DatatypeCorrection",
+						"DatatypeCorrection window(over(sales_id,",
+						"          car_id,",
+						"          Region,",
+						"          State,",
+						"          City,",
+						"          seller_type,",
+						"          owner,",
+						"          sold,",
+						"          ad_placed_on,",
+						"          sold_on,",
+						"          selling_price),",
+						"     asc(sales_id, true),",
+						"     rank = rank()) ~> window1",
+						"window1 filter(rank==1) ~> filter1",
+						"filter1 select(mapColumn(",
+						"          sales_id,",
+						"          ad_placed_on,",
+						"          sold_on,",
+						"          selling_price,",
+						"          Region,",
+						"          State,",
+						"          City,",
+						"          seller_type,",
+						"          owner,",
+						"          sold,",
+						"          car_id",
+						"     ),",
+						"     partitionBy('hash', 1),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     partitionBy('hash', 1)) ~> sqldb",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SalesSinkAdls"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/sales')]",
+				"[concat(variables('workspaceId'), '/datasets/sales_silver_sql')]",
+				"[concat(variables('workspaceId'), '/datasets/sales_silver')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/salesfacttable_dataflow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "sales_silver_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "salesData"
+						},
+						{
+							"dataset": {
+								"referenceName": "Parquet3",
+								"type": "DatasetReference"
+							},
+							"name": "policyData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "salesfacttable",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SalesCount"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "AvgSellingPrice"
+						},
+						{
+							"name": "CarsSold"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "NoOfIndividualSales"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "NoOfDealerSales"
+						},
+						{
+							"name": "filter3"
+						},
+						{
+							"name": "filter4"
+						},
+						{
+							"name": "filter5"
+						},
+						{
+							"name": "policysalesjoin"
+						},
+						{
+							"name": "filter7"
+						},
+						{
+							"name": "carsoldwithoutinsurance"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "select3"
+						},
+						{
+							"name": "join4"
+						},
+						{
+							"name": "select4"
+						},
+						{
+							"name": "join5"
+						},
+						{
+							"name": "select5"
+						},
+						{
+							"name": "monthyearderive"
+						},
+						{
+							"name": "inventoryCount"
+						},
+						{
+							"name": "derivedColumn5"
+						},
+						{
+							"name": "window1"
+						},
+						{
+							"name": "join6"
+						},
+						{
+							"name": "select6"
+						},
+						{
+							"name": "selectInventoryLeft"
+						},
+						{
+							"name": "join7"
+						},
+						{
+							"name": "select7"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          sales_id as integer,",
+						"          ad_placed_on as timestamp,",
+						"          sold_on as timestamp,",
+						"          selling_price as integer,",
+						"          Region as string,",
+						"          State as string,",
+						"          City as string,",
+						"          seller_type as string,",
+						"          owner as string,",
+						"          sold as string,",
+						"          car_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> salesData",
+						"source(output(",
+						"          policy_number as integer,",
+						"          policy_bind_date as date,",
+						"          policy_state as string,",
+						"          policy_csl as string,",
+						"          policy_deductable as integer,",
+						"          policy_annual_premium as double,",
+						"          umbrella_limit as integer,",
+						"          car_id as integer,",
+						"          customer_id as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> policyData",
+						"filter5 aggregate(groupBy(year,",
+						"          month),",
+						"     Sales_Count = count(sold_on)) ~> SalesCount",
+						"monthyearderive select(mapColumn(",
+						"          sales_id,",
+						"          ad_placed_on,",
+						"          sold_on,",
+						"          selling_price,",
+						"          seller_type,",
+						"          owner,",
+						"          sold,",
+						"          car_id,",
+						"          customer_id = sales_id,",
+						"          month,",
+						"          year",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"filter4 aggregate(groupBy(year,",
+						"          month),",
+						"     Avg_Selling_Price = avg(selling_price)) ~> AvgSellingPrice",
+						"filter3 aggregate(groupBy(year,",
+						"          month),",
+						"     No_Of_Cars_Sold = count(sold_on)) ~> CarsSold",
+						"select1 filter((seller_type == 'Individual') && (!isNull(sold_on))) ~> filter1",
+						"filter1 aggregate(groupBy(year,",
+						"          month),",
+						"     No_Of_Individual_Sales = count(sold_on)) ~> NoOfIndividualSales",
+						"select1 filter((seller_type == 'Dealer')  && (!isNull(sold_on))) ~> filter2",
+						"filter2 aggregate(groupBy(year,",
+						"          month),",
+						"     No_Of_Dealer_Sales = count(sold_on)) ~> NoOfDealerSales",
+						"select1 filter((!isNull(sold_on))) ~> filter3",
+						"select1 filter((!isNull(sold_on))) ~> filter4",
+						"select1 filter((!isNull(sold_on))) ~> filter5",
+						"select1, policyData join(select1@car_id == policyData@car_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> policysalesjoin",
+						"policysalesjoin filter((isNull(policy_number)) &&(!isNull(sold_on))) ~> filter7",
+						"filter7 aggregate(groupBy(year,",
+						"          month),",
+						"     no_insurance_count = count(select1@car_id)) ~> carsoldwithoutinsurance",
+						"SalesCount, AvgSellingPrice join(SalesCount@year == AvgSellingPrice@year",
+						"     && SalesCount@month == AvgSellingPrice@month,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 select(mapColumn(",
+						"          year = SalesCount@year,",
+						"          month = SalesCount@month,",
+						"          Sales_Count,",
+						"          Avg_Selling_Price",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2, CarsSold join(select2@year == CarsSold@year",
+						"     && select2@month == CarsSold@month,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"join3 select(mapColumn(",
+						"          year = select2@year,",
+						"          month = select2@month,",
+						"          Sales_Count,",
+						"          Avg_Selling_Price,",
+						"          No_Of_Cars_Sold",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3, NoOfIndividualSales join(select3@year == NoOfIndividualSales@year",
+						"     && select3@month == NoOfIndividualSales@month,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join4",
+						"join4 select(mapColumn(",
+						"          year = select3@year,",
+						"          month = select3@month,",
+						"          Sales_Count,",
+						"          Avg_Selling_Price,",
+						"          No_Of_Cars_Sold,",
+						"          No_Of_Individual_Sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select4",
+						"select4, NoOfDealerSales join(select4@year == NoOfDealerSales@year",
+						"     && select4@month == NoOfDealerSales@month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join5",
+						"join5 select(mapColumn(",
+						"          year = select4@year,",
+						"          month = select4@month,",
+						"          Sales_Count,",
+						"          Avg_Selling_Price,",
+						"          No_Of_Cars_Sold,",
+						"          No_Of_Individual_Sales,",
+						"          No_Of_Dealer_Sales",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select5",
+						"salesData derive(year = case(isNull(sold_on),year(ad_placed_on),year(sold_on)),",
+						"          month = case(isNull(sold_on),month(ad_placed_on),month(sold_on))) ~> monthyearderive",
+						"derivedColumn5 aggregate(groupBy(year,",
+						"          month),",
+						"     Not_sold_count = sum(Not_sold)) ~> inventoryCount",
+						"select1 derive(Not_sold = case(sold=='N',1,0)) ~> derivedColumn5",
+						"inventoryCount window(asc(year, true),",
+						"     asc(month, true),",
+						"     inventory_left = sum(Not_sold_count)) ~> window1",
+						"select5, selectInventoryLeft join(select5@year == selectInventoryLeft@year",
+						"     && select5@month == selectInventoryLeft@month,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join6",
+						"join6 select(mapColumn(",
+						"          year = select5@year,",
+						"          month = select5@month,",
+						"          Sales_Count,",
+						"          Avg_Selling_Price,",
+						"          No_Of_Cars_Sold,",
+						"          No_Of_Individual_Sales,",
+						"          No_Of_Dealer_Sales,",
+						"          inventory_count",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select6",
+						"window1 select(mapColumn(",
+						"          year,",
+						"          month,",
+						"          inventory_count = inventory_left",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectInventoryLeft",
+						"select6, carsoldwithoutinsurance join(select6@year == carsoldwithoutinsurance@year",
+						"     && select6@month == carsoldwithoutinsurance@month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join7",
+						"join7 select(mapColumn(",
+						"          year = select6@year,",
+						"          month = select6@month,",
+						"          Avg_Selling_Price,",
+						"          No_Of_Cars_Sold,",
+						"          No_Of_Individual_Sales,",
+						"          No_Of_Dealer_Sales,",
+						"          inventory_count,",
+						"          no_insurance_count",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select7",
+						"select7 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     partitionFileNames:['salesfacttable'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/sales_silver_dataset')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet3')]",
+				"[concat(variables('workspaceId'), '/datasets/salesfacttable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Ad-hocqueries')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "---Q3\nSELECT\n    [fuel] AS \"Fuel\",\n    AVG(CAST(FLOOR(CAST(SUBSTRING([mileage], 1, CHARINDEX(' ', [mileage]) - 1) AS DECIMAL(10, 1))) AS INT)) AS \"Avg. Mileage (Integer)\"\nFROM\n    [silver].[cars]\nGROUP BY\n    [fuel];\n\n---Q4\nSelect [model]\nFROM [silver].[cars]\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "secondcars_silver",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/customerfacttable')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE TABLE CustomerFactData (\n    CustomerID INT, \n    kms_driven FLOAT,\n    avg_speed FLOAT,\n    is_customer_health_insured INT,\n    is_customer_having_car_loan INT,\n    is_customer_defaulter INT,\n    risk_category VARCHAR(50)\n)\nWITH\n(\n DISTRIBUTION = HASH([customerID])   \n);\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "capstonefacttable",
+						"poolName": "capstonefacttable"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/data_exploration')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "---cars exploration\nSELECT\n    TOP 100*\nFROM\n    OPENROWSET(\n        BULK 'https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver/cars/part-00000-fdc5a7f7-1048-4a27-97ca-8039054bda1e-c000.snappy.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n\n---customers exploration\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver/customers/part-00000-cdeadeaa-6d7e-4dd3-9494-cfc15f69e1e9-c000.snappy.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n\n---policy exploration\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver/policy/part-00000-2bbc4a75-b093-4fcd-a18d-ea577a2bebac-c000.snappy.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n\n---sales exploration\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver/sales/part-00000-60e14114-2119-459e-a55b-e77d9d3baf62-c000.snappy.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/data_source')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "use secondcars_silver;\nGO\ncreate master key ENCRYPTION by PASSWORD='Tredence@1';\n\ncreate database scoped CREDENTIAL secondcars_cred\nwith IDENTITY ='SHARED ACCESS SIGNATURE',\nSECRET= 'sp=r&st=2023-09-18T04:45:06Z&se=2023-09-28T12:45:06Z&spr=https&sv=2022-11-02&sr=c&sig=fRAPkhX9T4%2FvUY2VJzJSu6IsVQn3kW2sVJ%2B3Qj6JZ%2F4%3D'\nif not EXISTS (select * from sys.external_data_sources where name='secondcars_source')\n    CREATE EXTERNAL DATA SOURCE secondcars_source\n    WITH(\n        location='https://capstonesecondcars.dfs.core.windows.net/capstone-filesystem/silver',\n        CREDENTIAL = secondcars_cred\n    );",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "secondcars_silver",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/db_creation')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "create DATABASE secondcars_silver;\nALTER DATABASE secondcars_silver COLLATE Latin1_General_100_BIN2_UTF8\nGO\n\nUSE secondcars_silver\nGO\ncreate schema silver\nGO\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "secondcars_silver",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/externaltable')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "---external table for sales\n\nuse secondcars_silver;\nGO\n\nCREATE EXTERNAL TABLE silver.sales\n(\n    sales_id int,\n    ad_placed_on datetime,\n    sold_on datetime,\n    selling_price VARCHAR(100),\n    region VARCHAR(100),\n    state VARCHAR(100),\n    city VARCHAR(100),\n    seller_type VARCHAR(100),\n    owner VARCHAR(100),\n    sold VARCHAR(100),\n    car_id INT)\nwith (\n    LOCATION='sales/part-00000-60e14114-2119-459e-a55b-e77d9d3baf62-c000.snappy.parquet',\n    data_source=secondcars_source,\n    FILE_FORMAT=parquet_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/sales'\n);\n\n---external table for policy\n\nuse secondcars_silver;\nGO\n\n\nCREATE EXTERNAL TABLE silver.policy\n(\n    policy_number INT,\n    policy_bind_date DATE,\n    policy_state VARCHAR(100),\n    policy_csl VARCHAR(100),\n    policy_deductible INT,\n    policy_annual_premium FLOAT,\n    umbrella_limit INT,\n    car_id INT,\n    customer_id INT\n)\nWITH(\n    LOCATION='policy/part-00000-2bbc4a75-b093-4fcd-a18d-ea577a2bebac-c000.snappy.parquet',\n    data_source=secondcars_source,\n    FILE_FORMAT=parquet_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/policy'\n);\n\n---external table for customers\n\nuse secondcars_silver;\nGO\n\nCREATE EXTERNAL TABLE silver.customers\n(\n    CustomerID INT,\n    Region VARCHAR(100),\n    [State] VARCHAR(100),\n    City VARCHAR(100),\n    seller_type VARCHAR(50),\n    [owner] VARCHAR(50),\n    [job] VARCHAR(50),\n    Martial VARCHAR(50),\n    Education VARCHAR(50),\n    [Default] INT,\n    Balance INT,\n    HHInsurance INT,\n    Carloan INT\n)\nWITH(\n    LOCATION='customers/part-00000-8dde0b55-291c-4539-a439-95cac25a72eb-c000.snappy.parquet',\n    data_source=secondcars_source,\n    FILE_FORMAT=parquet_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/customers'\n);\n\n\n---external table for cars\n\nuse secondcars_silver;\nGO\n\nCREATE EXTERNAL TABLE silver.cars\n(\n    car_id int,\n    name VARCHAR(100),\n    km_driven int,\n    fuel VARCHAR(100),\n    transmission VARCHAR(100),\n    mileage VARCHAR(100),\n    engine VARCHAR(100),\n    max_power VARCHAR(100),\n    torque VARCHAR(100),\n    seats int,\n    model VARCHAR(100))\nwith (\n    LOCATION='cars/part-00000-fdc5a7f7-1048-4a27-97ca-8039054bda1e-c000.snappy.parquet',\n    data_source=secondcars_source,\n    FILE_FORMAT=parquet_file_format,\n    reject_value=10,\n    rejected_row_location='rejections/cars'\n);\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "secondcars_silver",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/file_format')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "use secondcars_silver;\nGO\n\nCREATE EXTERNAL FILE FORMAT parquet_file_format \nWITH (\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n);\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "secondcars_silver",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/metrics')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- customerID,is_customer_health insured, is_customer_having car_loan,\n\nSELECT customer_id, HHInsurance, CarLoan,\n(CASE WHEN Balance>0 Then \"YES\" ELSE \"NO\" END) as is_deafulter\nfrom customers\n\n-- policy\nwith base1 as(\nSELECT YEAR(policy_bind_date) as year, MONTH(policy_bind_date) as month,\ncount(policy_number) as number_of_customers from policy\ngroup by YEAR(policy_bind_date), MONTH(policy_bind_date)),\nbase2 as(\nselect *, \n);\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date)\nHAVING s.sold=\"Y\";\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id and s.sold=\"Y\" \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date);\n\n\nSELECT YEAR(p.policy_bind_date) as year, MONTH(p.policy_bind_date) as month,\ncount(policy_number) as sold_cars_policies\nfrom policy p join sales s on p.car_id=s.car_id \nGROUP BY YEAR(p.policy_bind_date), MONTH(policy_bind_date)\nHAVING s.sold=\"N\";\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/policyfacttable')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "DROP TABLE Policyfacttable;\nDROP TABLE Salesfacttable\n\n\nCREATE TABLE Policyfacttable (\n    [month] INT,\n    [year] INT,\n    Number_of_customers INT,\n    sold_car_policies INT,\n    inventory_car_policies INT,\n    liable_cars INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([month]),\n    PARTITION   (   [year] RANGE RIGHT FOR VALUES\n                    (1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,\n                    2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015)\n                )\n);\n\nCREATE TABLE Salesfacttable (\n    [year] INT,\n    [month] INT,\n    Avg_Selling_Price FLOAT,\n    No_Of_Cars_Sold INT,\n    No_Of_Individual_Sales INT,\n    No_Of_Dealer_Sales INT,\n    inventory_count INT,\n    no_insurance_count INT\n)\nWITH\n(\n    DISTRIBUTION = HASH([year]),\n    PARTITION   (   [month] RANGE RIGHT FOR VALUES\n                    (1,2,3,4,5,6,7,8,9,10,11,12)\n                )\n);\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "capstonefacttable",
+						"poolName": "capstonefacttable"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/capstonefacttable')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus"
+		}
+	]
+}

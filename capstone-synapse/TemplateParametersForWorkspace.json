@@ -1,0 +1,48 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "capstone-synapse"
+		},
+		"AzureSqlDatabase1811_connectionString": {
+			"value": ""
+		},
+		"LS_to_AzureSqlDB_connectionString": {
+			"value": ""
+		},
+		"capstone-synapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:capstone-synapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"customerSQLdb_connectionString": {
+			"value": ""
+		},
+		"customer_DB_connectionString": {
+			"value": ""
+		},
+		"sales_silver_sql_connectionString": {
+			"value": ""
+		},
+		"staginglinkedservice_connectionString": {
+			"value": ""
+		},
+		"syn-workspace01-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:syn-workspace01.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"synapsepro-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapsepro.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"testsql_connectionString": {
+			"value": ""
+		},
+		"capstone-synapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://capstonesecondcars.dfs.core.windows.net"
+		},
+		"syn-workspace01-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://synapsestore01.dfs.core.windows.net"
+		},
+		"synapsepro-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://adlsglobalaayush.dfs.core.windows.net"
+		}
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "salesfactstablesink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "facts/policy",
+				"fileSystem": "capstone-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

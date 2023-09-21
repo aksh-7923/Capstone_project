@@ -15,6 +15,43 @@
 			},
 			"compressionCodec": "snappy"
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "policy_number",
+				"type": "INT32"
+			},
+			{
+				"name": "policy_bind_date",
+				"type": "DATE"
+			},
+			{
+				"name": "policy_state",
+				"type": "UTF8"
+			},
+			{
+				"name": "policy_csl",
+				"type": "UTF8"
+			},
+			{
+				"name": "policy_deductable",
+				"type": "INT32"
+			},
+			{
+				"name": "policy_annual_premium",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "umbrella_limit",
+				"type": "INT32"
+			},
+			{
+				"name": "car_id",
+				"type": "INT32"
+			},
+			{
+				"name": "customer_id",
+				"type": "INT32"
+			}
+		]
 	}
 }

@@ -2,7 +2,7 @@
 	"name": "customerfacttable",
 	"properties": {
 		"content": {
-			"query": "CREATE TABLE CustomerFactData (\n    CustomerID INT, \n    kms_driven FLOAT,\n    avg_speed FLOAT,\n    is_customer_health_insured INT,\n    is_customer_having_car_loan INT,\n    is_customer_defaulter INT,\n    risk_category VARCHAR(50)\n)\nWITH\n(\n DISTRIBUTION = HASH([customerID]),\n PARTITION (risk_category RANGE RIGHT FOR VALUES ('Low', 'Medium', 'High', 'Very high'))    \n);\n\n\n\n",
+			"query": "CREATE TABLE CustomerFactData (\n    CustomerID INT, \n    kms_driven FLOAT,\n    avg_speed FLOAT,\n    is_customer_health_insured INT,\n    is_customer_having_car_loan INT,\n    is_customer_defaulter INT,\n    risk_category VARCHAR(50)\n)\nWITH\n(\n DISTRIBUTION = HASH([customerID])   \n);\n\n\n\n",
 			"metadata": {
 				"language": "sql"
 			},

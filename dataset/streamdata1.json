@@ -1,0 +1,64 @@
+{
+	"name": "streamdata1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "streamdata",
+				"fileSystem": "capstone-filesystem"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "Customer ID",
+				"type": "String"
+			},
+			{
+				"name": "Device ID",
+				"type": "String"
+			},
+			{
+				"name": "Vehcile Speed",
+				"type": "String"
+			},
+			{
+				"name": "Vehicle Distance",
+				"type": "String"
+			},
+			{
+				"name": "Latitude",
+				"type": "String"
+			},
+			{
+				"name": "Longitude",
+				"type": "String"
+			},
+			{
+				"name": "Event Timestamp",
+				"type": "String"
+			},
+			{
+				"name": "EventProcessedUtcTime",
+				"type": "String"
+			},
+			{
+				"name": "PartitionId",
+				"type": "String"
+			},
+			{
+				"name": "EventEnqueuedUtcTime",
+				"type": "String"
+			}
+		]
+	}
+}

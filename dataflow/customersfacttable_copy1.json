@@ -1,0 +1,217 @@
+{
+	"name": "customersfacttable_copy1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "customers_silver",
+						"type": "DatasetReference"
+					},
+					"name": "customerssourcehist"
+				},
+				{
+					"dataset": {
+						"referenceName": "streamdata1",
+						"type": "DatasetReference"
+					},
+					"name": "streamdata1"
+				},
+				{
+					"dataset": {
+						"referenceName": "Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "carssilverdata"
+				},
+				{
+					"dataset": {
+						"referenceName": "policy_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "policysilverdata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join4"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "select3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          Region as string,",
+				"          State as string,",
+				"          City as string,",
+				"          seller_type as string,",
+				"          owner as string,",
+				"          Job as string,",
+				"          Marital as string,",
+				"          Education as string,",
+				"          Default as integer,",
+				"          Balance as integer,",
+				"          HHInsurance as integer,",
+				"          CarLoan as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> customerssourcehist",
+				"source(output(",
+				"          {Customer ID} as integer,",
+				"          {Device ID} as string,",
+				"          {Vehcile Speed} as double,",
+				"          {Vehicle Distance} as double,",
+				"          Latitude as string,",
+				"          Longitude as string,",
+				"          {Event Timestamp} as string,",
+				"          EventProcessedUtcTime as string,",
+				"          PartitionId as string,",
+				"          EventEnqueuedUtcTime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> streamdata1",
+				"source(output(",
+				"          car_id as integer,",
+				"          name as string,",
+				"          km_driven as integer,",
+				"          fuel as string,",
+				"          transmission as string,",
+				"          mileage as string,",
+				"          engine as string,",
+				"          max_power as string,",
+				"          torque as string,",
+				"          seats as integer,",
+				"          model as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> carssilverdata",
+				"source(output(",
+				"          policy_number as integer,",
+				"          policy_bind_date as date,",
+				"          policy_state as string,",
+				"          policy_csl as string,",
+				"          policy_deductable as integer,",
+				"          policy_annual_premium as double,",
+				"          umbrella_limit as integer,",
+				"          car_id as integer,",
+				"          customer_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> policysilverdata",
+				"customerssourcehist, streamdata1 join(CustomerID == {Customer ID},",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join3 select(mapColumn(",
+				"          CustomerID,",
+				"          Balance,",
+				"          HHInsurance,",
+				"          CarLoan,",
+				"          {Vehcile Speed},",
+				"          {Vehicle Distance},",
+				"          {Event Timestamp},",
+				"          km_driven",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"join1, policysilverdata join(CustomerID == customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2, carssilverdata join(policysilverdata@car_id == carssilverdata@car_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"select1 aggregate(groupBy(CustomerID),",
+				"     kms_driven = sum({Vehicle Distance}),",
+				"          avg_speed = avg({Vehcile Speed})) ~> aggregate1",
+				"select1 select(mapColumn(",
+				"          CustomerID,",
+				"          HHInsurance,",
+				"          CarLoan,",
+				"          km_driven,",
+				"          Balance",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 derive(is_customer_defaulter = iif(Balance>0, 1, 0)) ~> derivedColumn1",
+				"aggregate1, derivedColumn1 join(aggregate1@CustomerID == select2@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join4",
+				"join4 derive(kms_driven = kms_driven+km_driven,",
+				"          risk_category = case(CarLoan==1 && HHInsurance==0 && avg_speed >= 70, \"Very high\", case(CarLoan==1 && HHInsurance==1 && avg_speed>=70, \"High\", case(CarLoan==0 && HHInsurance==1 && avg_speed>=70, \"Medium\", \"Low\")))) ~> derivedColumn2",
+				"derivedColumn2 select(mapColumn(",
+				"          CustomerID = aggregate1@CustomerID,",
+				"          kms_driven,",
+				"          avg_speed,",
+				"          is_customer_health_insured = HHInsurance,",
+				"          is_customer_defaulter = CarLoan,",
+				"          is_customer_defaulter,",
+				"          risk_category",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

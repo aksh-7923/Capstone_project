@@ -1,0 +1,66 @@
+{
+	"name": "salessourceparquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-60e14114-2119-459e-a55b-e77d9d3baf62-c000.snappy.parquet",
+				"folderPath": "silver/sales",
+				"fileSystem": "capstone-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "sales_id",
+				"type": "INT32"
+			},
+			{
+				"name": "ad_placed_on",
+				"type": "INT96"
+			},
+			{
+				"name": "sold_on",
+				"type": "INT96"
+			},
+			{
+				"name": "selling_price",
+				"type": "INT32"
+			},
+			{
+				"name": "Region",
+				"type": "UTF8"
+			},
+			{
+				"name": "State",
+				"type": "UTF8"
+			},
+			{
+				"name": "City",
+				"type": "UTF8"
+			},
+			{
+				"name": "seller_type",
+				"type": "UTF8"
+			},
+			{
+				"name": "owner",
+				"type": "UTF8"
+			},
+			{
+				"name": "sold",
+				"type": "UTF8"
+			},
+			{
+				"name": "car_id",
+				"type": "INT32"
+			}
+		]
+	}
+}

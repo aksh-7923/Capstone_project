@@ -1,0 +1,21 @@
+{
+	"name": "goldparquetadls",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "capstone-synapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "customerfacts",
+				"folderPath": "facts/customers",
+				"fileSystem": "capstone-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

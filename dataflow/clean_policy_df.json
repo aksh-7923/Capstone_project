@@ -105,6 +105,7 @@
 				"          customer_id as integer",
 				"     ),",
 				"     format: 'parquet',",
+				"     partitionFileNames:['policydata'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
